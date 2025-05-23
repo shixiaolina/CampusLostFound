@@ -13,7 +13,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Home/Index"; // 首要路径是登陆界面
+    options.LoginPath = "/Home/Index"; // 改为您的首页路径
     options.AccessDeniedPath = "/Home/AccessDenied";
 });
 
