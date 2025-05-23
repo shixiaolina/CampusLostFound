@@ -1,0 +1,117 @@
+﻿@model CampusLostAndFound.Models.Item
+
+@{
+    // 确保 Model 不为 null 并设置默认标题
+    ViewData["Title"] = Model?.Type == ItemType.Lost ? "发布失物信息" : "发布招领信息";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <h2>@ViewData["Title"]</h2>
+    <hr />
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <!-- 物品类型选择 -->
+        <div class="form-group mb-3">
+            <label class="form-label">信息类型</label>
+            <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" asp-for="Type" value="@ItemType.Lost" id="typeLost" checked="@(Model?.Type == ItemType.Lost)">
+                <label class="btn btn-outline-danger" for="typeLost">
+                    <i class="fas fa-search"></i> 丢失物品
+                </label>
+
+                <input type="radio" class="btn-check" asp-for="Type" value="@ItemType.Found" id="typeFound" checked="@(Model?.Type == ItemType.Found)">
+                <label class="btn btn-outline-success" for="typeFound">
+                    <i class="fas fa-hand-holding"></i> 拾获物品
+                </label>
+            </div>
+        </div>
+
+        <!-- 物品名称 -->
+        <div class="form-group mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" placeholder="请输入物品名称" required />
+            <span asp-validation-for="Name" class="text-danger"></span>
+            <div class="invalid-feedback">请输入物品名称</div>
+        </div>
+
+        <!-- 物品描述 -->
+        <div class="form-group mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="4" placeholder="请详细描述物品特征（颜色、品牌、特殊标识等）" required></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+            <div class="invalid-feedback">请填写物品描述</div>
+        </div>
+
+        <!-- 丢失/拾获位置 -->
+        <div class="form-group mb-3">
+            <label asp-for="Location" class="form-label"></label>
+            <input asp-for="Location" class="form-control" placeholder="例如：图书馆3楼自习室、食堂东门" required />
+            <span asp-validation-for="Location" class="text-danger"></span>
+            <div class="invalid-feedback">请填写具体位置</div>
+        </div>
+
+        <!-- 时间选择 -->
+        <div class="form-group mb-3">
+            <label asp-for="ItemDate" class="form-label"></label>
+            <input asp-for="ItemDate" type="datetime-local" class="form-control"
+                   value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
+            <span asp-validation-for="ItemDate" class="text-danger"></span>
+            <small class="text-muted">请选择物品丢失/拾获的大致时间</small>
+        </div>
+
+        <!-- 图片上传 -->
+        <div class="form-group mb-4">
+            <label asp-for="ImageFile" class="form-label">上传图片</label>
+            <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+            <span asp-validation-for="ImageFile" class="text-danger"></span>
+            <small class="text-muted">请上传物品照片（可选，但有助于识别）</small>
+        </div>
+
+        <!-- 提交按钮 -->
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary w-100 py-2">
+                <i class="fas fa-paper-plane me-2"></i>提交信息
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // 客户端表单验证
+        (function () {
+            'use strict'
+
+            // 获取所有需要验证的表单
+            const forms = document.querySelectorAll('.needs-validation')
+
+            // 循环并阻止提交
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+
+            // 监听类型选择变化，更新标题
+            document.querySelectorAll('input[name="Type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const titleElement = document.querySelector('h2');
+                    titleElement.textContent = this.value === '@ItemType.Lost' ?
+                        '发布失物信息' : '发布招领信息';
+                });
+            });
+        })()
+    </script>
+}

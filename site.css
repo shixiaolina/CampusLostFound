@@ -1,0 +1,22 @@
+/* 自定义样式 */
+.navbar-brand {
+    font-weight: 600;
+}
+
+.footer {
+    background-color: #f8f9fa;
+}
+
+/* 卡片悬停效果 */
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .navbar-collapse {
+        margin-top: 1rem;
+    }
+}
