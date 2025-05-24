@@ -13,11 +13,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Home/Index"; // 改为您的首页路径
+    options.LoginPath = "/Home/Index"; // 首要路径
     options.AccessDeniedPath = "/Home/AccessDenied";
 });
 
-// 配置Identity服务
+// 配置Identity服务（合并重复配置并更新策略）
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -29,11 +29,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// 添加授权策略
+// 添加授权策略（合并并更新策略名称）
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("RequireStaffRole", policy => policy.RequireRole("Staff", "Admin"));
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireStudent", policy => policy.RequireRole("Student"));
+    options.AddPolicy("RequireStaff", policy => policy.RequireRole("Staff", "Admin"));
+    options.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
 });
 
 builder.Services.AddControllersWithViews();
@@ -41,7 +42,7 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// 初始化数据库
+// 初始化数据库和角色
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -52,12 +53,24 @@ using (var scope = app.Services.CreateScope())
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
         context.Database.Migrate();
+
+        // 初始化角色
+        var roles = new[] { "Student", "Staff", "Admin" };
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+
+        // 调用种子数据初始化（如果需要）
         await SeedData.Initialize(services);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "初始化数据库时发生错误");
+        logger.LogError(ex, "初始化数据库或角色时发生错误");
     }
 }
 

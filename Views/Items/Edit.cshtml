@@ -1,0 +1,110 @@
+﻿@model CampusLostAndFound.Models.Item
+
+@{
+    ViewData["Title"] = "编辑物品信息";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="display-4 font-weight-bold text-primary">编辑物品信息</h1>
+
+            <div class="card shadow-lg">
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="form-group">
+                            <label asp-for="Name" class="font-weight-bold">物品名称</label>
+                            <input asp-for="Name" class="form-control" required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Description" class="font-weight-bold">物品描述</label>
+                            <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Location" class="font-weight-bold">发现地点</label>
+                            <input asp-for="Location" class="form-control" required />
+                            <span asp-validation-for="Location" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ItemDate" class="font-weight-bold">日期</label>
+                            <input asp-for="ItemDate" class="form-control datetimepicker" type="datetime-local" required />
+                            <span asp-validation-for="ItemDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Type" class="font-weight-bold">物品类型</label>
+                            <select asp-for="Type" class="form-control" required>
+                                <option value="@ItemType.Lost">丢失物品</option>
+                                <option value="@ItemType.Found">拾获物品</option>
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ContactPhone" class="font-weight-bold">联系电话</label>
+                            <input asp-for="ContactPhone" class="form-control" placeholder="选填，便于他人联系" />
+                            <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Notes" class="font-weight-bold">备注信息</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="选填，可添加物品特征等额外信息"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ImageFile" class="font-weight-bold">更新图片</label>
+                            <div class="form-text text-muted">可选，上传新图片将替换旧图片</div>
+                            <input asp-for="ImageFile" type="file" class="form-control-file" />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.ImagePath))
+                        {
+                            <div class="form-group">
+                                <label class="font-weight-bold">当前图片</label>
+                                <img src="@Model.ImagePath" class="img-thumbnail" style="max-width: 300px;" />
+                            </div>
+                        }
+
+                        <div class="form-group">
+                            <label asp-for="Status" class="font-weight-bold">物品状态</label>
+                            <select asp-for="Status" class="form-control" disabled>
+                                <option value="@ItemStatus.Pending">待审核</option>
+                                <option value="@ItemStatus.Published">已发布</option>
+                                <option value="@ItemStatus.Claimed">已认领</option>
+                                <option value="@ItemStatus.Archived">已归档</option>
+                            </select>
+                            <div class="form-text text-muted">状态由系统或管理员管理，无法自行修改</div>
+                        </div>
+
+                        <div class="form-group text-right">
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                                <i class="fas fa-times mr-2"></i>取消
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>保存修改
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 日期时间选择器（需引入相关库）
+        $(function () {
+            $('.datetimepicker').datetimepicker({
+                format: 'YYYY-MM-DD HH:mm'
+            });
+        });
+    </script>
+}

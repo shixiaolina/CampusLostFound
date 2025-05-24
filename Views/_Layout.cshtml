@@ -1,36 +1,221 @@
-﻿<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-        <a class="navbar-brand" href="/">校园失物招领</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/Items/Index">物品列表</a>
-                </li>
-                @if (User.Identity.IsAuthenticated)
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Items/Create">发布信息</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Account/Manage">个人中心</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Account/Logout">退出</a>
-                    </li>
-                }
-                else
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Account/Login">登录</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Account/Register">注册</a>
-                    </li>
-                }
-            </ul>
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - 校园失物招领系统</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入Bootstrap DateTimePicker（如果需要） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+    
+    <style>
+        /* 强制启用Flexbox布局 */
+        body {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 100vh !important;
+            margin: 0 !important;
+            background-color: #f8f9fa; /* 浅灰色背景 */
+        }
+
+        main.container {
+            flex-grow: 1 !important;
+            width: 100% !important;
+            max-width: 1200px !important; /* 限制最大宽度 */
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #a1a1a1;
+            }
+
+        /* 移除所有灰色分隔线 */
+        .border-bottom, .border-top, .border {
+            border: none !important;
+        }
+
+        /* 卡片底部按钮区样式 */
+        .card-footer {
+            background: transparent !important;
+            padding: 0.75rem 1.25rem !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <!-- 顶部导航栏 - 移除灰色边框 -->
+        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm fixed-top">
+            <div class="container">
+                <a class="navbar-brand font-weight-bold text-primary" asp-action="Index" asp-controller="Home">
+                    <i class="fas fa-search mr-2"></i>校园失物招领系统
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-action="Index" asp-controller="Items">
+                                <i class="fas fa-list-ul mr-1"></i>物品列表
+                            </a>
+                        </li>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-action="Create" asp-controller="Items">
+                                    <i class="fas fa-plus-circle mr-1"></i>添加物品
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="navbar-nav ml-auto">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <div class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="https://picsum.photos/id/@User.Identity.Name.GetHashCode()/32/32" alt="用户头像" class="rounded-circle mr-2" style="width: 32px; height: 32px;">
+                                    <span>@User.Identity.Name</span>
+                                    <span class="badge ml-2 @(User.IsInRole("Admin") ? "bg-danger" : User.IsInRole("Staff") ? "bg-warning" : "bg-primary")">
+                                        @(User.IsInRole("Admin") ? "管理员" : User.IsInRole("Staff") ? "工作人员" : "学生")
+                                    </span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right shadow-lg" aria-labelledby="navbarDropdown">
+                                    <div class="dropdown-header bg-light">
+                                        <h6 class="text-primary font-weight-bold">用户信息</h6>
+                                    </div>
+                                    <div class="dropdown-item disabled">
+                                        <i class="fas fa-user-circle mr-2"></i>@User.Identity.Name
+                                    </div>
+                                    <div class="dropdown-item disabled">
+                                        <i class="fas fa-id-card mr-2"></i>@(User.IsInRole("Admin") ? "管理员" : User.IsInRole("Staff") ? "工作人员" : "学生")
+                                    </div>
+                                    <div class="dropdown-divider"></div>
+                                    <form asp-action="Logout" asp-controller="Account" method="post">
+                                        <button id="logoutButton" type="submit" class="dropdown-item text-danger">
+                                            <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="nav-link" asp-action="Login" asp-controller="Account">
+                                <i class="fas fa-sign-in-alt mr-1"></i>登录
+                            </a>
+                            <a class="nav-link" asp-action="Register" asp-controller="Account">
+                                <i class="fas fa-user-plus mr-1"></i>注册
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container pt-5 pb-4 mt-5">
+        <!-- 页面标题 -->
+        <div class="mb-4">
+            <h1 class="display-4 font-weight-bold text-primary">@ViewData["Title"]</h1>
+            <p class="lead text-muted">在这里可以查看和管理校园内的失物信息</p>
         </div>
-    </div>
-</nav>
+
+        <!-- 用户信息卡片 - 移除灰色边框 -->
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div class="card mb-4 bg-gradient-light shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <img src="https://picsum.photos/id/@User.Identity.Name.GetHashCode()/64/64" alt="用户头像" class="rounded-circle mr-4" style="width: 64px; height: 64px;">
+                        <div>
+                            <h4 class="card-title font-weight-bold">欢迎, @User.Identity.Name</h4>
+                            <p class="card-text">
+                                <span class="badge @(User.IsInRole("Admin") ? "bg-danger" : User.IsInRole("Staff") ? "bg-warning" : "bg-primary")">
+                                    @(User.IsInRole("Admin") ? "管理员" : User.IsInRole("Staff") ? "工作人员" : "学生")
+                                </span>
+                            </p>
+                        </div>
+                        <div class="ml-auto">
+                            <form asp-action="Logout" asp-controller="Account" method="post">
+                                <button id="logoutButton" type="submit" class="btn btn-outline-danger btn-lg">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- 内容区域 -->
+        @RenderBody()
+    </main>
+
+    <!-- 页脚 - 移除版权信息和分隔线 -->
+    <footer id="site-footer" class="bg-primary text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="font-weight-bold mb-3">校园失物招领系统</h5>
+                    <p class="text-white-75">帮助师生快速找回丢失物品，共建和谐校园</p>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="font-weight-bold mb-3">快速链接</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white-75">首页</a></li>
+                        <li><a href="#" class="text-white-75">物品列表</a></li>
+                        <li><a href="#" class="text-white-75">发布物品</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="font-weight-bold mb-3">联系我们</h5>
+                    <ul class="list-unstyled">
+                        <li class="text-white-75"><i class="fas fa-envelope mr-2"></i>contact@campuslostandfound.com</li>
+                        <li class="text-white-75"><i class="fas fa-phone mr-2"></i>123-456-7890</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- 移除了包含版权信息的整个div -->
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+
+    <!-- 页面加载动画 -->
+    <script>
+        $(window).on('load', function() {
+            $('#loading').fadeOut('slow');
+        });
+    </script>
+</body>
+</html>

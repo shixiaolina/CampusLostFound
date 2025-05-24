@@ -1,0 +1,99 @@
+﻿@model CampusLostAndFound.Models.Item
+
+@{
+    ViewData["Title"] = "物品详情";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <!-- 返回按钮 -->
+            <a href="javascript:history.back()" class="btn btn-outline-secondary mb-4">
+                <i class="fas fa-arrow-left mr-2"></i>返回列表
+            </a>
+
+            <!-- 物品详情卡片 -->
+            <div class="card shadow-lg mb-5">
+                <!-- 物品图片 -->
+                <div class="card-header bg-primary text-white">
+                    <h2 class="font-weight-bold">@Model.Name</h2>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <img src="@Model.ImagePath" class="card-img-top" alt="@Model.Name" style="height: 400px; object-fit: cover;">
+                }
+                else
+                {
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                        <i class="fas fa-camera text-muted display-4"></i>
+                        <p class="text-muted ml-3">暂无图片</p>
+                    </div>
+                }
+
+                <div class="card-body">
+                    <!-- 物品类型和状态 -->
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="badge @(Model.Type == ItemType.Lost ? "bg-danger" : "bg-success") text-white px-3 py-2 text-lg">
+                            @Model.Type
+                        </span>
+                        <span class="badge @(Model.Status == ItemStatus.Pending ? "bg-secondary" :
+                                        Model.Status == ItemStatus.Published ? "bg-primary" :
+                                        Model.Status == ItemStatus.Claimed ? "bg-success" : "bg-dark") text-white px-3 py-2 text-lg">
+                            @Model.Status
+                        </span>
+                    </div>
+
+                    <!-- 物品描述 -->
+                    <div class="mb-4">
+                        <h4 class="font-weight-bold text-primary">物品描述</h4>
+                        <p class="lead">@Model.Description</p>
+                    </div>
+
+                    <!-- 物品信息 -->
+                    <div class="mb-4">
+                        <h4 class="font-weight-bold text-primary">物品信息</h4>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <i class="fas fa-map-marker-alt text-primary mr-2"></i>
+                                <span class="font-weight-bold">发现地点:</span> @Model.Location
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-calendar-alt text-primary mr-2"></i>
+                                <span class="font-weight-bold">日期:</span> @Model.ItemDate.ToString("yyyy-MM-dd HH:mm")
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-user text-primary mr-2"></i>
+                                <span class="font-weight-bold">提交者:</span> @Model.User?.UserName ?? "未知用户"
+                            </li>
+                            @if (!string.IsNullOrEmpty(Model.ContactPhone))
+                            {
+                                <li class="list-group-item">
+                                    <i class="fas fa-phone text-primary mr-2"></i>
+                                    <span class="font-weight-bold">联系电话:</span> @Model.ContactPhone
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="d-flex justify-content-between">
+                        @if (Model.Status == ItemStatus.Published && Model.Type == ItemType.Found)
+                        {
+                            <a asp-action="Claim" asp-route-id="@Model.Id" class="btn btn-success btn-lg">
+                                <i class="fas fa-hand-paper mr-2"></i>认领物品
+                            </a>
+                        }
+
+                        @if (User.IsInRole("Admin") || User.IsInRole("Staff") || (User.Identity.IsAuthenticated && User.Identity.Name == Model.User?.UserName))
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-lg">
+                                <i class="fas fa-edit mr-2"></i>编辑信息
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

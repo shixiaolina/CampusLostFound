@@ -31,20 +31,33 @@ namespace CampusLostAndFound.Models
         [DataType(DataType.Upload)]
         public IFormFile? ImageFile { get; set; }
 
+        // 关联用户ID（提交者）
+        [Display(Name = "提交者")]
         public string? UserId { get; set; }
+
+        // 导航属性：提交物品的用户
+        [Display(Name = "提交者信息")]
         public virtual ApplicationUser? User { get; set; }
 
         [Display(Name = "创建时间")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         [Display(Name = "更新时间")]
-        public DateTime UpdatedAt { get; set; } = DateTime.Now; // 添加更新时间属性并设置默认值
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [Display(Name = "状态")]
         public ItemStatus Status { get; set; } = ItemStatus.Pending;
 
         [Display(Name = "物品类型")]
         public ItemType Type { get; set; }
+
+        // 添加联系信息（用于失主或拾获者联系方式）
+        [Display(Name = "联系电话")]
+        public string? ContactPhone { get; set; }
+
+        // 添加备注信息
+        [Display(Name = "备注")]
+        public string? Notes { get; set; }
     }
 
     public enum ItemStatus

@@ -1,22 +1,28 @@
-/* 自定义样式 */
-.navbar-brand {
-    font-weight: 600;
-}
-
-.footer {
-    background-color: #f8f9fa;
-}
-
 /* 卡片悬停效果 */
-.card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+.card-hover {
     transition: all 0.3s ease;
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-    .navbar-collapse {
-        margin-top: 1rem;
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
+
+/* 按钮动画效果 */
+.btn {
+    transition: all 0.2s ease;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+
+/* 渐变背景 */
+.bg-gradient-light {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4ecf5 100%);
+}
+
+/* 平滑滚动 */
+html {
+    scroll-behavior: smooth;
 }
