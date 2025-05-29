@@ -74,6 +74,7 @@ namespace CampusLostAndFound.Controllers
                 return NotFound();
             }
 
+            // 在方法开始处声明currentUser
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -109,16 +110,17 @@ namespace CampusLostAndFound.Controllers
                 return View(item);
             }
 
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            // 在方法开始处声明currentUser
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
                 _logger.LogWarning("未授权的用户尝试提交失物信息");
                 return Unauthorized();
             }
 
-            item.UserId = user.Id;
-            item.Status = await _userManager.IsInRoleAsync(user, "Staff") ||
-                          await _userManager.IsInRoleAsync(user, "Admin")
+            item.UserId = currentUser.Id;
+            item.Status = await _userManager.IsInRoleAsync(currentUser, "Staff") ||
+                          await _userManager.IsInRoleAsync(currentUser, "Admin")
                 ? ItemStatus.Published
                 : ItemStatus.Pending;
 
@@ -136,7 +138,7 @@ namespace CampusLostAndFound.Controllers
                     {
                         ModelState.AddModelError("ImageFile", "只允许上传 JPG, PNG 或 GIF 格式的图片");
                         _logger.LogWarning("用户 {UserId} 尝试上传不支持的文件类型: {FileName}",
-                                           user.Id, item.ImageFile.FileName);
+                                           currentUser.Id, item.ImageFile.FileName);
                         return View(item);
                     }
 
@@ -144,7 +146,7 @@ namespace CampusLostAndFound.Controllers
                     {
                         ModelState.AddModelError("ImageFile", "图片大小不能超过 5MB");
                         _logger.LogWarning("用户 {UserId} 尝试上传超过大小限制的文件: {FileName}",
-                                           user.Id, item.ImageFile.FileName);
+                                           currentUser.Id, item.ImageFile.FileName);
                         return View(item);
                     }
 
@@ -164,11 +166,11 @@ namespace CampusLostAndFound.Controllers
                     }
 
                     item.ImagePath = "/uploads/" + uniqueFileName;
-                    _logger.LogInformation("用户 {UserId} 成功上传文件: {FilePath}", user.Id, filePath);
+                    _logger.LogInformation("用户 {UserId} 成功上传文件: {FilePath}", currentUser.Id, filePath);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "用户 {UserId} 文件上传失败", user.Id);
+                    _logger.LogError(ex, "用户 {UserId} 文件上传失败", currentUser.Id);
                     ModelState.AddModelError("", "文件上传失败，请稍后重试");
                     return View(item);
                 }
@@ -178,7 +180,7 @@ namespace CampusLostAndFound.Controllers
             {
                 _context.Items.Add(item);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("用户 {UserId} 成功提交失物信息，ID: {ItemId}", user.Id, item.Id);
+                _logger.LogInformation("用户 {UserId} 成功提交失物信息，ID: {ItemId}", currentUser.Id, item.Id);
 
                 TempData["SuccessMessage"] = "失物信息已成功提交！" +
                     (item.Status == ItemStatus.Pending ? "审核通过后将显示在列表中。" : "已直接发布到列表。");
@@ -187,7 +189,7 @@ namespace CampusLostAndFound.Controllers
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "用户 {UserId} 保存失物信息到数据库失败", user.Id);
+                _logger.LogError(ex, "用户 {UserId} 保存失物信息到数据库失败", currentUser.Id);
                 ModelState.AddModelError("", "保存失败，请检查输入信息或稍后重试");
                 return View(item);
             }
@@ -209,6 +211,7 @@ namespace CampusLostAndFound.Controllers
                 return NotFound();
             }
 
+            // 在方法开始处声明currentUser
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -244,7 +247,13 @@ namespace CampusLostAndFound.Controllers
                 return View(item);
             }
 
-            ApplicationUser? currentUser = null;
+            // 在方法开始处声明currentUser
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                _logger.LogWarning("未找到当前登录用户");
+                return Unauthorized();
+            }
 
             try
             {
@@ -253,13 +262,6 @@ namespace CampusLostAndFound.Controllers
                 {
                     _logger.LogWarning("未找到ID为 {Id} 的物品进行编辑", id);
                     return NotFound();
-                }
-
-                currentUser = await _userManager.GetUserAsync(User);
-                if (currentUser == null)
-                {
-                    _logger.LogWarning("未找到当前登录用户");
-                    return Unauthorized();
                 }
 
                 if (originalItem.UserId != currentUser.Id &&
@@ -321,12 +323,123 @@ namespace CampusLostAndFound.Controllers
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "用户 {UserId} 更新失物信息到数据库失败", currentUser?.Id);
+                _logger.LogError(ex, "用户 {UserId} 更新失物信息到数据库失败", currentUser.Id);
                 ModelState.AddModelError("", "更新失败，请检查输入信息或稍后重试");
+                return View(item);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "用户 {UserId} 编辑物品时发生未知错误", currentUser.Id);
+                ModelState.AddModelError("", "发生未知错误，请稍后重试");
                 return View(item);
             }
         }
 
-        // 其他方法（Delete, Claim等）...
+        // GET: Items/Claim/5 - 显示认领表单
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Claim(int? id)
+        {
+            if (id == null)
+            {
+                _logger.LogWarning("请求的认领物品ID为空");
+                return NotFound();
+            }
+
+            // 在方法开始处声明currentUser
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                _logger.LogWarning("未找到当前登录用户");
+                return Unauthorized();
+            }
+
+            var item = await _context.Items
+                .Include(i => i.User)
+                .FirstOrDefaultAsync(m => m.Id == id && m.Status == ItemStatus.Published && !m.IsClaimed);
+
+            if (item == null)
+            {
+                _logger.LogWarning("未找到ID为 {Id} 的可认领物品", id);
+                return NotFound();
+            }
+
+            var viewModel = new ClaimViewModel
+            {
+                ItemId = item.Id,
+                ItemName = item.Name,
+                Name = "",
+                Contact = "",
+                Reason = ""
+            };
+
+            return View(viewModel);
+        }
+
+        // POST: Items/Claim/5 - 处理认领提交
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Claim(int id, [Bind("ItemId,ItemName,Name,Contact,Reason")] ClaimViewModel viewModel)
+        {
+            if (id != viewModel.ItemId)
+            {
+                return NotFound();
+            }
+
+            // 在方法开始处声明currentUser
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                _logger.LogWarning("未找到当前登录用户");
+                return Unauthorized();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var item = await _context.Items.FindAsync(id);
+                    if (item == null || item.Status != ItemStatus.Published || item.IsClaimed)
+                    {
+                        return NotFound();
+                    }
+
+                    // 更新物品认领信息
+                    item.IsClaimed = true;
+                    item.ClaimerId = currentUser.Id;
+                    item.ClaimerName = viewModel.Name;
+                    item.ClaimerContact = viewModel.Contact;
+                    item.ClaimReason = viewModel.Reason;
+                    item.ClaimDate = DateTime.Now;
+                    item.Status = ItemStatus.Archived;
+
+                    _context.Update(item);
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("用户 {UserId} 成功认领物品 {ItemId}", currentUser.Id, id);
+                    TempData["SuccessMessage"] = "物品已成功认领并归档";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ItemExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            return View(viewModel);
+        }
+
+        private bool ItemExists(int id)
+        {
+            return _context.Items.Any(e => e.Id == id);
+        }
     }
 }

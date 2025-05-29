@@ -1,0 +1,32 @@
+﻿@model CampusLostAndFound.Models.ClaimViewModel
+
+@{
+    ViewData["Title"] = "认领 " + Model.ItemName;
+}
+
+<h1 class="mb-4">认领 @Model.ItemName</h1>
+
+<form asp-action="Claim" method="post">
+    <input type="hidden" asp-for="ItemId" />
+    <input type="hidden" asp-for="ItemName" /> <!-- 隐藏字段，确保POST时传递ItemName -->
+
+    <div class="form-group">
+        <label asp-for="Name" class="form-label">您的姓名</label>
+        <input asp-for="Name" class="form-control" required />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Contact" class="form-label">联系方式</label>
+        <input asp-for="Contact" class="form-control" required />
+        <span asp-validation-for="Contact" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Reason" class="form-label">认领理由</label>
+        <textarea asp-for="Reason" class="form-control" rows="3" required></textarea>
+        <span asp-validation-for="Reason" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">提交认领申请</button>
+</form>

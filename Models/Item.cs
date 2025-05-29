@@ -58,6 +58,26 @@ namespace CampusLostAndFound.Models
         // 添加备注信息
         [Display(Name = "备注")]
         public string? Notes { get; set; }
+
+        [Display(Name = "是否已认领")]
+        public bool IsClaimed { get; set; } = false;
+
+        [Display(Name = "认领人姓名")]
+        public string? ClaimerName { get; set; }
+
+        [Display(Name = "认领日期")]
+        [DataType(DataType.DateTime)]
+        public DateTime? ClaimDate { get; set; }
+
+        [Display(Name = "认领理由")]
+        public string? ClaimReason { get; set; }
+        // 认领人ID
+        [Display(Name = "认领人ID")]
+        public string? ClaimerId { get; set; }
+        // 认领人联系信息
+        [Display(Name = "认领人联系信息")]
+        public string? ClaimerContact { get; set; }
+
     }
 
     public enum ItemStatus
