@@ -443,6 +443,68 @@ namespace CampusLostAndFound.Controllers
             return View(viewModel);
         }
 
+        // GET: Items/Delete/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var item = await _context.Items
+                .Include(i => i.User)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            return View(item);
+        }
+
+        // POST: Items/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var item = await _context.Items.FindAsync(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                // 删除关联图片文件
+                if (!string.IsNullOrEmpty(item.ImagePath))
+                {
+                    var imagePath = Path.Combine(_env.WebRootPath, item.ImagePath.TrimStart('/'));
+                    if (System.IO.File.Exists(imagePath))
+                    {
+                        System.IO.File.Delete(imagePath);
+                        _logger.LogInformation("删除物品图片: {ImagePath}", imagePath);
+                    }
+                }
+
+                _context.Items.Remove(item);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("管理员 {UserId} 删除了物品 {ItemId}",
+                                      User.FindFirstValue(ClaimTypes.NameIdentifier), id);
+
+                TempData["SuccessMessage"] = "物品已成功删除！";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "删除物品失败: {ItemId}", id);
+                TempData["ErrorMessage"] = "删除物品时发生错误，请稍后重试。";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
         private bool ItemExists(int id)
         {
             return _context.Items.Any(e => e.Id == id);
