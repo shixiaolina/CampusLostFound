@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "编辑物品信息";
+    bool isAdminOrStaff = User.IsInRole("Admin") || User.IsInRole("Staff");
 }
 
 <div class="container mt-5">
@@ -74,13 +75,26 @@
 
                         <div class="form-group">
                             <label asp-for="Status" class="font-weight-bold">物品状态</label>
-                            <select asp-for="Status" class="form-control" disabled>
-                                <option value="@ItemStatus.Pending">待审核</option>
-                                <option value="@ItemStatus.Published">已发布</option>
-                                <option value="@ItemStatus.Claimed">已认领</option>
-                                <option value="@ItemStatus.Archived">已归档</option>
-                            </select>
-                            <div class="form-text text-muted">状态由系统或管理员管理，无法自行修改</div>
+                            @if (isAdminOrStaff)
+                            {
+                                <select asp-for="Status" class="form-control">
+                                    <option value="@ItemStatus.Pending">待审核</option>
+                                    <option value="@ItemStatus.Published">已发布</option>
+                                    <option value="@ItemStatus.Rejected">已拒绝</option>
+                                    <option value="@ItemStatus.Archived">已归档</option>
+                                </select>
+                                <div class="form-text text-muted">管理员/工作人员可修改状态</div>
+                            }
+                            else
+                            {
+                                <select asp-for="Status" class="form-control" disabled>
+                                    <option value="@ItemStatus.Pending">待审核</option>
+                                    <option value="@ItemStatus.Published">已发布</option>
+                                    <option value="@ItemStatus.Claimed">已认领</option>
+                                    <option value="@ItemStatus.Archived">已归档</option>
+                                </select>
+                                <div class="form-text text-muted">状态由系统或管理员管理，无法自行修改</div>
+                            }
                         </div>
 
                         <div class="form-group text-right">
@@ -90,6 +104,9 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save mr-2"></i>保存修改
                             </button>
+                            <a asp-action="Index" class="btn btn-info ml-2">
+                                <i class="fas fa-check mr-2"></i>完成，返回列表
+                            </a>
                         </div>
                     </form>
                 </div>

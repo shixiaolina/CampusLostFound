@@ -8,6 +8,8 @@ using System.Security.Claims;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
+using System;
+using System.Threading.Tasks;
 
 namespace CampusLostAndFound.Controllers
 {
@@ -74,7 +76,6 @@ namespace CampusLostAndFound.Controllers
                 return NotFound();
             }
 
-            // 在方法开始处声明currentUser
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -110,7 +111,6 @@ namespace CampusLostAndFound.Controllers
                 return View(item);
             }
 
-            // 在方法开始处声明currentUser
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -211,7 +211,6 @@ namespace CampusLostAndFound.Controllers
                 return NotFound();
             }
 
-            // 在方法开始处声明currentUser
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -247,7 +246,6 @@ namespace CampusLostAndFound.Controllers
                 return View(item);
             }
 
-            // 在方法开始处声明currentUser
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -264,9 +262,10 @@ namespace CampusLostAndFound.Controllers
                     return NotFound();
                 }
 
-                if (originalItem.UserId != currentUser.Id &&
-                    !await _userManager.IsInRoleAsync(currentUser, "Admin") &&
-                    !await _userManager.IsInRoleAsync(currentUser, "Staff"))
+                bool isAdminOrStaff = await _userManager.IsInRoleAsync(currentUser, "Admin") ||
+                                      await _userManager.IsInRoleAsync(currentUser, "Staff");
+
+                if (originalItem.UserId != currentUser.Id && !isAdminOrStaff)
                 {
                     _logger.LogWarning("用户 {UserId} 尝试编辑不属于自己的物品", currentUser.Id);
                     return Forbid();
@@ -278,8 +277,18 @@ namespace CampusLostAndFound.Controllers
                 originalItem.Type = item.Type;
                 originalItem.ContactPhone = item.ContactPhone;
                 originalItem.Notes = item.Notes;
-                originalItem.Status = item.Status;
                 originalItem.UpdatedAt = DateTime.Now;
+
+                if (isAdminOrStaff)
+                {
+                    originalItem.Status = item.Status;
+
+                    if (originalItem.Status == ItemStatus.Published &&
+                        (item.Status == ItemStatus.Pending || item.Status == ItemStatus.Rejected))
+                    {
+                        originalItem.PublishedAt = DateTime.Now;
+                    }
+                }
 
                 if (item.ImageFile != null && item.ImageFile.Length > 0)
                 {
@@ -346,7 +355,6 @@ namespace CampusLostAndFound.Controllers
                 return NotFound();
             }
 
-            // 在方法开始处声明currentUser
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -387,7 +395,6 @@ namespace CampusLostAndFound.Controllers
                 return NotFound();
             }
 
-            // 在方法开始处声明currentUser
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -405,7 +412,6 @@ namespace CampusLostAndFound.Controllers
                         return NotFound();
                     }
 
-                    // 更新物品认领信息
                     item.IsClaimed = true;
                     item.ClaimerId = currentUser.Id;
                     item.ClaimerName = viewModel.Name;

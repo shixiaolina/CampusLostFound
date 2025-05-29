@@ -77,6 +77,10 @@ namespace CampusLostAndFound.Models
         // 认领人联系信息
         [Display(Name = "认领人联系信息")]
         public string? ClaimerContact { get; set; }
+        [Display(Name = "发布时间")]
+        public DateTime? PublishedAt { get; set; }
+
+
 
     }
 
@@ -89,7 +93,9 @@ namespace CampusLostAndFound.Models
         [Display(Name = "已认领")]
         Claimed,
         [Display(Name = "已归档")]
-        Archived
+        Archived,
+        [Display(Name = "已拒绝")]
+        Rejected
     }
 
     public enum ItemType

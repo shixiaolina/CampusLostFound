@@ -18,7 +18,7 @@
                 <div>
                     <h4 class="mb-1">欢迎, @User.Identity.Name</h4>
                     <p class="mb-0 text-sm text-muted">
-                        身份: 
+                        身份:
                         <span class="badge @(User.IsInRole("Admin") ? "bg-danger text-white" : User.IsInRole("Staff") ? "bg-warning text-dark" : "bg-primary")">
                             @(User.IsInRole("Admin") ? "管理员" : User.IsInRole("Staff") ? "工作人员" : "学生")
                         </span>
@@ -35,7 +35,7 @@
 
     <h1 class="mb-4">@ViewData["Title"]</h1>
 
-    <!-- 其余代码保持不变 -->
+    <!-- 搜索和筛选区域 -->
     <div class="card mb-4">
         <div class="card-body">
             <form asp-action="Index" method="get" class="row g-3">
@@ -65,6 +65,7 @@
         </a>
     </p>
 
+    <!-- 物品卡片网格 -->
     <div class="row">
         @foreach (var item in Model)
         {
@@ -89,23 +90,39 @@
                         <p class="card-text text-sm text-gray-500"><i class="fas fa-calendar-alt me-1"></i> 发布于 @item.CreatedAt.ToString("yyyy-MM-dd")</p>
                     </div>
                     <div class="card-footer bg-transparent border-0 px-3 pb-3">
-                        <!-- 移除边框并调整内边距 -->
                         <div class="d-flex gap-1">
-                            <!-- 使用flex布局和微小间隙 -->
                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary flex-grow-1">详情</a>
+
+                            <!-- 仅显示已发布的失物可认领 -->
                             @if (item.Status == ItemStatus.Published && item.Type == ItemType.Found)
                             {
                                 <a asp-action="Claim" asp-route-id="@item.Id" class="btn btn-sm btn-success flex-grow-1">认领</a>
                             }
+
+                            <!-- 管理员/工作人员可编辑任何物品 -->
                             @if (User.IsInRole("Staff") || User.IsInRole("Admin"))
                             {
                                 <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning flex-grow-1">编辑</a>
+                            }
+
+                            <!-- 管理员可删除物品 -->
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <button type="button" class="btn btn-sm btn-danger flex-grow-1"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal@item.Id">
+                                    删除
+                                </button>
                             }
                         </div>
                     </div>
                 </div>
             </div>
         }
+    </div>
+
+    <!-- 分页控件 -->
+    <div class="d-flex justify-content-center mt-4">
+        <!-- 分页控件将在这里添加 -->
     </div>
 </div>
 
@@ -128,7 +145,32 @@
             ItemStatus.Published => "bg-primary",
             ItemStatus.Claimed => "bg-success",
             ItemStatus.Archived => "bg-dark",
+            ItemStatus.Rejected => "bg-danger", // 新增状态样式
             _ => "bg-info"
         };
     }
+}
+
+<!-- 删除确认模态框 -->
+@foreach (var item in Model)
+{
+    <div class="modal fade" id="deleteModal@item.Id" tabindex="-1" aria-labelledby="deleteModalLabel@item.Id" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel@item.Id">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    确定要删除物品 "@item.Name" 吗？此操作不可撤销。
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post">
+                        <button type="submit" class="btn btn-danger">确认删除</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 }
