@@ -1,20 +1,38 @@
-/* 卡片悬停效果 */
-.card-hover {
+/* 卡片相关样式 */
+.item-card-hover {
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
     transition: all 0.3s ease;
 }
 
-    .card-hover:hover {
+    .item-card-hover:hover {
+        -webkit-transform: translateY(-5px);
+        -moz-transform: translateY(-5px);
+        -ms-transform: translateY(-5px);
+        -o-transform: translateY(-5px);
         transform: translateY(-5px);
         box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        background-color: #f8f9fa;
     }
 
-/* 按钮动画效果 */
-.btn {
+/* 按钮相关样式 */
+.item-action-btn {
+    -webkit-transition: all 0.2s ease;
+    -moz-transition: all 0.2s ease;
+    -ms-transition: all 0.2s ease;
+    -o-transition: all 0.2s ease;
     transition: all 0.2s ease;
 }
 
-    .btn:hover {
+    .item-action-btn:hover {
+        -webkit-transform: translateY(-2px);
+        -moz-transform: translateY(-2px);
+        -ms-transform: translateY(-2px);
+        -o-transform: translateY(-2px);
         transform: translateY(-2px);
+        opacity: 0.9;
     }
 
 /* 渐变背景 */
@@ -25,4 +43,42 @@
 /* 平滑滚动 */
 html {
     scroll-behavior: smooth;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1; /* 让main区域占据除footer外的剩余空间 */
+}
+
+.footer {
+    background-color: #f8f9fa; /* 按需设置背景色 */
+    text-align: center;
+    padding: 10px 0;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+/* 响应式样式调整 */
+@media (max-width: 768px) {
+    .item-card-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+
+    .item-action-btn:hover {
+        transform: translateY(-1px);
+    }
 }
